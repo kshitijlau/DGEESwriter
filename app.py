@@ -24,7 +24,7 @@ def create_master_prompt(person_name, person_data):
     This function structures all the rules, examples, and data into a single request.
 
     Args:
-        person_name (str): The name of the person being evaluated.
+        person_name (str): The first name of the person being evaluated.
         person_data (str): A string representation of the person's scores and competencies.
 
     Returns:
@@ -66,9 +66,10 @@ Your task is to synthesize the provided competency scores for {person_name} into
 
 5.  **Language and Tone:**
     * Use **British English** only.
-    * The name of the candidate must be spelled exactly as provided: "{person_name}".
+    * The name of the candidate must be their first name only, spelled exactly as provided: "{person_name}".
     * Avoid using generic words like "good" or "bad." Use professional synonyms like "effective," "strong," "adept," etc.
     * Ensure all punctuation is used correctly.
+    * **ABSOLUTE RULE:** Never mention the numerical scores (1, 2, 3, 4, 5) in the final written summary. The scores are for your internal logic only and must not appear in the output.
 
 ## Deconstruction of Examples (Internalize this Logic)
 
@@ -94,7 +95,7 @@ Your task is to synthesize the provided competency scores for {person_name} into
     3.  **Actionable Detail:** Development suggestions are specific: "To deepen this capability, she could take a more active role in shaping the development culture of her team by introducing coaching and supporting stretch assignments."
 
 ## Final Instruction for {person_name}
-Now, process the provided competency scores for {person_name}. Write a concise, two-part executive summary under 280 words, adhering to all the rules above. Start with the required opening line, use the correct tenses, cover all 8 competencies, and provide specific, actionable development suggestions for every growth opportunity.
+Now, process the provided competency scores for {person_name}. Write a concise, two-part executive summary under 280 words, adhering to all the rules above. Use only the first name "{person_name}". Start with the required opening line, use the correct tenses, cover all 8 competencies, provide specific, actionable development suggestions for every growth opportunity, and NEVER mention the numerical scores in the final text.
 """
 
 # --- API Call Function for Azure OpenAI ---
@@ -196,9 +197,9 @@ if uploaded_file is not None:
             
             # Iterate through each row of the DataFrame
             for i, row in df.iterrows():
-                # Construct full name and format scores for the prompt
-                full_name = f"{row['first_name']} {row['last_name']}"
-                st.write(f"Processing summary for: {full_name}...")
+                # **MODIFICATION**: Use only the 'first_name' for the summary
+                first_name = row['first_name']
+                st.write(f"Processing summary for: {first_name}...")
                 
                 scores_data = []
                 for competency in competency_columns:
@@ -207,16 +208,16 @@ if uploaded_file is not None:
                         scores_data.append(f"- {competency}: {row[competency]}")
                 person_data_str = "\n".join(scores_data)
 
-                # Create and run the prompt for the current person
-                prompt = create_master_prompt(full_name, person_data_str)
+                # Create and run the prompt for the current person using their first name
+                prompt = create_master_prompt(first_name, person_data_str)
                 summary = generate_summary_azure(prompt, azure_api_key, azure_endpoint, azure_deployment_name)
                 
                 if summary:
                     generated_summaries.append(summary)
-                    st.success(f"Successfully generated summary for {full_name}.")
+                    st.success(f"Successfully generated summary for {first_name}.")
                 else:
                     generated_summaries.append("Error: Failed to generate summary.")
-                    st.error(f"Failed to generate summary for {full_name}.")
+                    st.error(f"Failed to generate summary for {first_name}.")
 
                 # Update the progress bar
                 progress_bar.progress((i + 1) / len(df))
