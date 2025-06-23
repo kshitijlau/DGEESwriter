@@ -1,22 +1,3 @@
-Of course. This is a crucial and highly valuable step in the process. Providing expert-written examples allows me to deconstruct the nuanced logic and style that a machine cannot infer on its own. I will analyze these two summaries, extract the more sophisticated patterns, and architect a new, significantly more advanced prompt.
-
-### Analysis of Human-Written Examples
-
-After a detailed analysis of the summaries for Ebrahim and Mahra, I have identified several key principles that mark them as superior to the output of the previous prompt version:
-
-1.  **Two-Paragraph Structure for Mixed Profiles:** This is the most significant structural change. Both examples use a two-paragraph format for candidates with strengths and development areas.
-      * **Paragraph 1: The Strengths Narrative.** It weaves together all the positive observations into a holistic story of the candidate's capabilities.
-      * **Paragraph 2: The Development Plan.** It provides a detailed, actionable, and constructive plan for improvement.
-2.  **Holistic Opening:** They avoid the rigid, formulaic opening ("`[Name]` evidenced a strong ability to..."). Instead, they open with a more sophisticated, narrative sentence that summarizes the candidate's key strengths holistically (e.g., "Ebrahim demonstrated a committed and well-intentioned approach...").
-3.  **Constructive and Forward-Looking Closing:** The Ebrahim example includes a positive closing statement that summarizes the candidate's potential. This was explicitly forbidden by the previous prompt but is clearly a desired feature.
-4.  **Highly Specific and Actionable Feedback:** The development points are not generic. They are specific actions tied to business outcomes (e.g., "...strengthened by improving risk forecasting and systematically evaluating long-term options," not just "improve decision making").
-5.  **Nuanced Vocabulary:** The language is more sophisticated ("well-intentioned," "keenness," "growing capability," "locally tailored ideas").
-
-Based on this analysis, I have re-engineered the application with a new prompt (Version 5).
-
-Here is the complete and untrimmed `.py` file.
-
-```python
 import streamlit as st
 import pandas as pd
 import openai
@@ -34,12 +15,11 @@ def to_excel(df):
     processed_data = output.getvalue()
     return processed_data
 
-# --- The RE-ENGINEERED Master Prompt Template (Version 5) ---
+# --- The RE-ENGINEERED Master Prompt Template (Version 5.1 - Syntax Fix) ---
 def create_master_prompt(person_name, pronoun, person_data):
     """
     Dynamically creates the new, highly-constrained prompt for the Azure OpenAI API.
-    VERSION 5: Incorporates analysis of human-expert examples for a two-paragraph structure,
-    more nuanced language, and highly specific developmental feedback.
+    VERSION 5.1: Corrects a syntax error in the f-string definition. The logic is identical to V5.
 
     Args:
         person_name (str): The first name of the person being evaluated.
@@ -49,8 +29,8 @@ def create_master_prompt(person_name, pronoun, person_data):
     Returns:
         str: A fully constructed prompt ready to be sent to the AI model.
     """
-    # FEEDBACK CHANGE: Major prompt overhaul based on new human-written examples.
-    return f"""
+    # SYNTAX FIX: The f-string has been carefully reconstructed to avoid parsing errors.
+    prompt_text = f"""
 You are an elite talent management consultant from a top-tier firm, known for writing insightful, nuanced, and actionable executive summaries in flawless British English. Your writing is strategic and indistinguishable from a human expert.
 
 ## Core Objective
@@ -79,7 +59,7 @@ Synthesize the provided competency data for {person_name} into a detailed, two-p
 3.  **The Development Plan (Paragraph 2) - CRITICAL DETAIL:**
     * Your development advice must be **highly specific and actionable**.
     * For each development area, clearly explain *how* the person can improve.
-    * Use lead-in phrases to structure your points: "To strengthen [pronoun] contribution...", "[Pronoun] may also consider enhancing...", "[Pronoun] decision-making could be strengthened by...", "To drive results, [pronoun] may consider..."
+    * Use lead-in phrases to structure your points: "To strengthen {pronoun} contribution...", "{pronoun} may also consider enhancing...", "{pronoun} decision-making could be strengthened by...", "To drive results, {pronoun} may consider..."
     * **Incorrect (Generic):** "He needs to improve decision making."
     * **Correct (Specific & Actionable):** "His decision-making could be strengthened by improving risk forecasting and systematically evaluating long-term options."
 
@@ -115,6 +95,7 @@ Synthesize the provided competency data for {person_name} into a detailed, two-p
 
 Now, process the provided competency data for {person_name}. Determine the profile type. For mixed profiles, create a two-paragraph summary following all the new rules. For high-scorer profiles, create a single detailed paragraph. The total word count should be **between 250 and 280 words** to ensure comprehensive detail. Be descriptive, specific, and write in the sophisticated, nuanced style of the examples provided.
 """
+    return prompt_text
 
 # --- API Call Function for Azure OpenAI ---
 def generate_summary_azure(prompt, api_key, endpoint, deployment_name):
@@ -127,14 +108,13 @@ def generate_summary_azure(prompt, api_key, endpoint, deployment_name):
             azure_endpoint=endpoint,
             api_version="2024-02-01"
         )
-        # FEEDBACK CHANGE: Updated system message to reflect the higher standard of writing.
         response = client.chat.completions.create(
             model=deployment_name,
             messages=[
                 {"role": "system", "content": "You are an elite talent management consultant from a top-tier firm, known for writing insightful, nuanced, and actionable executive summaries in flawless British English."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.25, # Slightly increased temperature for more nuanced and creative language.
+            temperature=0.25,
             max_tokens=800,
             top_p=1.0,
             frequency_penalty=0.4,
@@ -146,11 +126,11 @@ def generate_summary_azure(prompt, api_key, endpoint, deployment_name):
         return None
 
 # --- Streamlit App Main UI ---
-st.set_page_config(page_title="DGE Executive Summary Generator v5", layout="wide")
+st.set_page_config(page_title="DGE Executive Summary Generator v5.1", layout="wide")
 
-st.title("📄 DGE Executive Summary Generator (V5)")
+st.title("📄 DGE Executive Summary Generator (V5.1)")
 st.markdown("""
-This application generates professional executive summaries based on leadership competency scores. **Version 5 incorporates advanced, human-expert examples for a more nuanced, two-paragraph output.**
+This application generates professional executive summaries based on leadership competency scores. **Version 5.1 incorporates advanced, human-expert examples for a more nuanced, two-paragraph output.**
 1.  **Set up your secrets**. Enter your Azure OpenAI credentials in the Streamlit Cloud app settings.
 2.  **Download the Sample Template**. The format requires a `gender` column (enter 'M' for Male, 'F' for Female).
 3.  **Upload your completed Excel file**.
@@ -177,9 +157,9 @@ sample_df = pd.DataFrame(sample_data)
 sample_excel_data = to_excel(sample_df)
 
 st.download_button(
-    label="📥 Download Sample Template File (V5)",
+    label="📥 Download Sample Template File (V5.1)",
     data=sample_excel_data,
-    file_name="dge_summary_template_v5.xlsx",
+    file_name="dge_summary_template_v5.1.xlsx",
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 )
 
@@ -251,7 +231,7 @@ if uploaded_file is not None:
 
             if generated_summaries:
                 st.balloons()
-                st.subheader("Generated Summaries (V5)")
+                st.subheader("Generated Summaries (V5.1)")
                 
                 output_df = df.copy()
                 output_df['Executive Summary'] = generated_summaries
@@ -260,12 +240,11 @@ if uploaded_file is not None:
                 
                 results_excel_data = to_excel(output_df)
                 st.download_button(
-                    label="📥 Download V5 Results as Excel",
+                    label="📥 Download V5.1 Results as Excel",
                     data=results_excel_data,
-                    file_name="Generated_Executive_Summaries_V5.xlsx",
+                    file_name="Generated_Executive_Summaries_V5.1.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 )
 
     except Exception as e:
         st.error(f"An error occurred: {e}")
-```
