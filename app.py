@@ -15,12 +15,12 @@ def to_excel(df):
     processed_data = output.getvalue()
     return processed_data
 
-# --- The RE-ENGINEERED Master Prompt Template (Version 6.1 - Confirmed One Paragraph) ---
+# --- The RE-ENGINEERED Master Prompt Template (Version 6.2 - Concise Opening) ---
 def create_master_prompt(person_name, pronoun, person_data):
     """
     Dynamically creates the new, highly-constrained prompt for the Azure OpenAI API.
-    VERSION 6.1: Confirms the reversion to a strict ONE-PARAGRAPH rule, while
-    explicitly preserving the content quality and detail from previous versions.
+    VERSION 6.2: Enforces a very short, direct opening sentence based on new feedback,
+    while maintaining overall content depth and the single-paragraph structure.
 
     Args:
         person_name (str): The first name of the person being evaluated.
@@ -34,7 +34,7 @@ def create_master_prompt(person_name, pronoun, person_data):
 You are an elite talent management consultant from a top-tier firm, known for writing insightful, nuanced, and actionable executive summaries in flawless British English. Your writing is strategic and indistinguishable from a human expert.
 
 ## Core Objective
-Synthesize the provided competency data for {person_name} into a **single, detailed, and unified narrative paragraph.** The content should be as rich and detailed as our best two-paragraph examples, but presented in a single block of text.
+Synthesize the provided competency data for {person_name} into a single, detailed, and unified narrative paragraph.
 
 ## Input Data for {person_name}
 <InputData>
@@ -47,16 +47,22 @@ Synthesize the provided competency data for {person_name} into a **single, detai
 
 1.  **CRITICAL STRUCTURE: Single Paragraph ONLY.**
     * The entire summary **MUST** be a single, unbroken paragraph. Do not use line breaks.
-    * The narrative must flow seamlessly from strengths into development areas.
 
-2.  **Narrative Flow for Mixed-Score Profiles:**
-    * **Opening:** Start with a holistic, professional, and narrative opening that introduces the candidate's key strengths.
-    * **Strengths Section:** Describe the candidate's strengths first, providing rich behavioral detail.
-    * **Seamless Transition:** After describing the strengths, you must move smoothly into the development areas. Use transition phrases like "To further enhance..." or "As a next step, {pronoun} could focus on..." to connect the parts of the narrative *without* starting a new paragraph.
-    * **Development Section:** Detail the growth opportunities with the same level of specific, actionable suggestions as before.
+2.  **Opening Sentence Protocol (NEW - V6.2):**
+    * The first sentence **MUST** be extremely short and direct.
+    * It must identify the candidate's single highest-scoring competency and state it plainly.
+    * **DO NOT** elaborate, explain, or list other competencies in the first sentence. All elaboration comes in the sentences that follow.
+    * **Correct Example:** "Amel presented as a strong results driver."
+    * **Incorrect Example:** "Amel demonstrates notable strengths as a strategic thinker and results driver, consistently aligning her actions with broader organisational goals and maintaining a clear focus on delivering impactful outcomes."
+
+3.  **Narrative Flow (After Opening Sentence):**
+    * After the direct opening, the rest of the paragraph should flow seamlessly.
+    * **Strengths Section:** Elaborate on the primary strength and describe other strengths, providing rich behavioral detail.
+    * **Seamless Transition:** After describing the strengths, move smoothly into the development areas. Use transition phrases like "To further enhance..." or "As a next step, {pronoun} could focus on..." to connect the parts of the narrative *without* starting a new paragraph.
+    * **Development Section:** Detail the growth opportunities with specific, actionable suggestions.
     * **Concluding Sentence:** The final sentence of the paragraph should be a brief, positive, and forward-looking statement about the candidate's potential.
 
-3.  **General Style Rules:**
+4.  **General Style Rules:**
     * Use clear, simple sentences. Aggressively avoid long sentences connected by many commas or conjunctions.
     * Describe behaviors with nuance; do not just label competencies.
     * ABSOLUTELY NO mention of scores, levels, or the assessment itself.
@@ -66,22 +72,22 @@ Synthesize the provided competency data for {person_name} into a **single, detai
 ## ANALYSIS OF A GOLD-STANDARD EXAMPLE (INTERNALIZE THIS LOGIC)
 ## ---------------------------------------------
 
-**This example demonstrates the required SINGLE-PARAGRAPH structure for a mixed profile.**
+**This example demonstrates the required SINGLE-PARAGRAPH structure for a mixed profile with the NEW concise opening.**
 
-* **Correct Output Example:** "Mahra demonstrated strengths especially in strategic thinking and talent development, with growing capability in driving innovation and making informed decisions. Her strategic thinking was evident in aligning initiatives with organisational goals and applying benchmarks, while she fostered learning by mentoring peers and sharing her expertise. To strengthen her strategic contribution, Mahra is encouraged to clarify any cost constraints and define more detailed budget plans. Her decision-making could be strengthened by improving risk forecasting and systematically evaluating long-term options, and she could drive results more effectively by setting clearer goals and monitoring progress more consistently. By embedding structured coaching and feedback to support long-term talent growth, Mahra has the potential to significantly elevate her leadership impact."
+* **Correct Output Example:** "Mahra presented as a strong strategic thinker. She demonstrated growing capability in driving innovation and making informed decisions, which was evident in her approach to aligning initiatives with organisational goals and applying benchmarks. She also fostered learning by mentoring peers and sharing her expertise. To strengthen her strategic contribution, Mahra is encouraged to clarify any cost constraints and define more detailed budget plans. Her decision-making could be strengthened by improving risk forecasting and systematically evaluating long-term options, and she could drive results more effectively by setting clearer goals and monitoring progress more consistently. By embedding structured coaching and feedback to support long-term talent growth, Mahra has the potential to significantly elevate her leadership impact."
 
 * **Analysis of the Logic:**
+    * **Concise Opening:** The summary starts with a very short, direct sentence: "Mahra presented as a strong strategic thinker."
     * **Single Paragraph:** The entire text is one unified paragraph.
-    * **Holistic Opening:** It starts by summarizing her key strengths in a narrative way.
-    * **Seamless Transition:** It moves from strengths ("...mentoring peers and sharing her expertise.") directly into development needs ("To strengthen her strategic contribution..."). The transition is smooth and occurs mid-paragraph.
-    * **Specific Feedback:** The development advice is actionable ("...clarify any cost constraints," "improving risk forecasting"). The level of detail is high.
+    * **Elaboration:** The details about her strengths immediately follow the opening sentence.
+    * **Seamless Transition:** It moves from strengths directly into development needs ("To strengthen her strategic contribution..."). The transition is smooth and occurs mid-paragraph.
     * **Integrated Closing:** The final sentence ("By embedding structured coaching...") is a forward-looking statement and is the natural conclusion of the single paragraph.
 
 ## ---------------------------------------------
 ## FINAL INSTRUCTIONS
 ## ---------------------------------------------
 
-Now, process the provided competency data for {person_name}. Create a **strict single-paragraph summary** following all the rules above. The total word count should be **between 250 and 280 words** to ensure comprehensive detail is not lost. The final output should have the content and detail of our best prior examples, but formatted as one paragraph.
+Now, process the provided competency data for {person_name}. Create a **strict single-paragraph summary** following all the rules above. The opening sentence must be extremely concise. The total word count should be **between 250 and 280 words** to ensure comprehensive detail is not lost.
 """
     return prompt_text
 
@@ -114,11 +120,11 @@ def generate_summary_azure(prompt, api_key, endpoint, deployment_name):
         return None
 
 # --- Streamlit App Main UI ---
-st.set_page_config(page_title="DGE Executive Summary Generator v6.1", layout="wide")
+st.set_page_config(page_title="DGE Executive Summary Generator v6.2", layout="wide")
 
-st.title("📄 DGE Executive Summary Generator (V6.1)")
+st.title("📄 DGE Executive Summary Generator (V6.2)")
 st.markdown("""
-This application generates professional executive summaries based on leadership competency scores. **Version 6.1 uses a strict one-paragraph structure.**
+This application generates professional executive summaries based on leadership competency scores. **Version 6.2 uses a strict one-paragraph structure and a concise opening sentence.**
 1.  **Set up your secrets**. Enter your Azure OpenAI credentials in the Streamlit Cloud app settings.
 2.  **Download the Sample Template**. The format requires a `gender` column (enter 'M' for Male, 'F' for Female).
 3.  **Upload your completed Excel file**.
@@ -145,9 +151,9 @@ sample_df = pd.DataFrame(sample_data)
 sample_excel_data = to_excel(sample_df)
 
 st.download_button(
-    label="📥 Download Sample Template File (V6.1)",
+    label="📥 Download Sample Template File (V6.2)",
     data=sample_excel_data,
-    file_name="dge_summary_template_v6.1.xlsx",
+    file_name="dge_summary_template_v6.2.xlsx",
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 )
 
@@ -219,7 +225,7 @@ if uploaded_file is not None:
 
             if generated_summaries:
                 st.balloons()
-                st.subheader("Generated Summaries (V6.1)")
+                st.subheader("Generated Summaries (V6.2)")
                 
                 output_df = df.copy()
                 output_df['Executive Summary'] = generated_summaries
@@ -228,9 +234,9 @@ if uploaded_file is not None:
                 
                 results_excel_data = to_excel(output_df)
                 st.download_button(
-                    label="📥 Download V6.1 Results as Excel",
+                    label="📥 Download V6.2 Results as Excel",
                     data=results_excel_data,
-                    file_name="Generated_Executive_Summaries_V6.1.xlsx",
+                    file_name="Generated_Executive_Summaries_V6.2.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 )
 
