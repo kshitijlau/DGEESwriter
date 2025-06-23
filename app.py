@@ -15,11 +15,12 @@ def to_excel(df):
     processed_data = output.getvalue()
     return processed_data
 
-# --- The RE-ENGINEERED Master Prompt Template (Version 5.1 - Syntax Fix) ---
+# --- The RE-ENGINEERED Master Prompt Template (Version 5.3 - Final Paragraph Fix) ---
 def create_master_prompt(person_name, pronoun, person_data):
     """
     Dynamically creates the new, highly-constrained prompt for the Azure OpenAI API.
-    VERSION 5.1: Corrects a syntax error in the f-string definition. The logic is identical to V5.
+    VERSION 5.3: Resolves the 3-paragraph issue by removing the conflicting "Closing Statement"
+    rule and integrating the closing sentence directly into the instructions for Paragraph 2.
 
     Args:
         person_name (str): The first name of the person being evaluated.
@@ -29,7 +30,6 @@ def create_master_prompt(person_name, pronoun, person_data):
     Returns:
         str: A fully constructed prompt ready to be sent to the AI model.
     """
-    # SYNTAX FIX: The f-string has been carefully reconstructed to avoid parsing errors.
     prompt_text = f"""
 You are an elite talent management consultant from a top-tier firm, known for writing insightful, nuanced, and actionable executive summaries in flawless British English. Your writing is strategic and indistinguishable from a human expert.
 
@@ -48,27 +48,19 @@ Synthesize the provided competency data for {person_name} into a detailed, two-p
 1.  **Structure for Mixed-Score Profiles (Most Common Case):**
     * You MUST write a **two-paragraph summary**.
     * **Paragraph 1 (The Strengths Narrative):** This paragraph weaves the candidate's strengths into a fluid, professional story. It should describe *how* they demonstrated their capabilities. Start with a holistic opening sentence.
-    * **Paragraph 2 (The Development Plan):** This paragraph details the growth opportunities. It must be constructive and provide specific, actionable suggestions. Start this paragraph with a clear transition phrase like "However," or "To strengthen..."
-    * **High-Scorer Profile (No scores of 1 or 2):** In this special case, you can use a single, extended paragraph focusing entirely on the strengths narrative.
+    * **Paragraph 2 (The Development Plan):** This paragraph details the growth opportunities. It must be constructive and provide specific, actionable suggestions. It concludes with a forward-looking statement.
 
-2.  **Opening Sentence Protocol (NEW):**
-    * **AVOID** the rigid format: "{person_name} evidenced a strong ability to..."
-    * **INSTEAD,** start with a more holistic, professional, and narrative opening that introduces the candidate's key strengths.
+2.  **Opening Sentence Protocol:**
+    * Start with a holistic, professional, and narrative opening that introduces the candidate's key strengths.
     * **Example Opening:** "Ebrahim demonstrated a committed and well-intentioned approach, drawing on his operational experience and strong sense of responsibility to driving results." OR "Mahra demonstrated strengths especially in strategic thinking and talent development, with growing capability in driving innovation."
 
-3.  **The Development Plan (Paragraph 2) - CRITICAL DETAIL:**
-    * Your development advice must be **highly specific and actionable**.
-    * For each development area, clearly explain *how* the person can improve.
-    * Use lead-in phrases to structure your points: "To strengthen {pronoun} contribution...", "{pronoun} may also consider enhancing...", "{pronoun} decision-making could be strengthened by...", "To drive results, {pronoun} may consider..."
-    * **Incorrect (Generic):** "He needs to improve decision making."
-    * **Correct (Specific & Actionable):** "His decision-making could be strengthened by improving risk forecasting and systematically evaluating long-term options."
+3.  **The Development Plan (Paragraph 2) - CRITICAL DETAIL & STRUCTURE:**
+    * Start this paragraph with a clear transition phrase like "However," or "To strengthen..."
+    * Your development advice must be **highly specific and actionable**. For each development area, clearly explain *how* the person can improve.
+    * Use lead-in phrases to structure your points: "To strengthen {pronoun} contribution...", "{pronoun} may also consider enhancing...", "{pronoun} decision-making could be strengthened by..."
+    * **Concluding Sentence:** You MUST conclude this second paragraph with a brief, positive, and forward-looking sentence that summarizes the candidate's potential. Do not make this a separate paragraph.
 
-4.  **Closing Statement (NEW):**
-    * For mixed-score profiles, conclude the summary with a brief, positive, and forward-looking statement.
-    * This final sentence should summarize the candidate's potential if the development areas are addressed.
-    * **Example Closing:** "With more focus on structured execution and outcome-driven planning, he has the potential to strengthen his influence and impact."
-
-5.  **General Style Rules:**
+4.  **General Style Rules:**
     * Use clear, simple sentences. Aggressively avoid long sentences connected by many commas or conjunctions.
     * Describe behaviors, do not just label competencies.
     * ABSOLUTELY NO mention of scores, levels, or the assessment itself.
@@ -80,20 +72,19 @@ Synthesize the provided competency data for {person_name} into a detailed, two-p
 
 **Example 1: Ebrahim (Mixed Profile)**
 * **Analysis:** This is the gold standard. It uses a two-paragraph structure.
-* **Paragraph 1 Logic:** It opens with a narrative sentence, then describes his strengths (responsibility, collaboration, innovation) by explaining his actions. It tells a story.
-* **Paragraph 2 Logic:** It starts with "However," to transition. It then gives very specific advice for different competencies: for planning ("...limited evidence of structured planning..."), for decision-making ("...tended to lack depth, with minimal reference to data analysis...").
-* **Closing Logic:** It ends with a positive, forward-looking summary of his potential. "Ebrahim brought a positive mindset... With more focus... he has the potential to strengthen his influence..."
+* **Paragraph 1 Logic:** It opens with a narrative sentence, then describes his strengths by explaining his actions.
+* **Paragraph 2 Logic:** It starts with "However," to transition. It gives specific advice for different competencies. The paragraph's final sentence is a positive, forward-looking summary of his potential ("With more focus..."). It is NOT a separate paragraph.
 
 **Example 2: Mahra (Mixed Profile)**
-* **Analysis:** Also a two-paragraph structure, with highly structured development advice.
-* **Paragraph 1 Logic:** Opens by naming her key strengths ("strategic thinking and talent development"). It then provides evidence for each, such as "...aligning initiatives with organisational goals, applying benchmarks..." and "...fostered learning by mentoring peers..."
-* **Paragraph 2 Logic:** Uses specific lead-in phrases for each development point ("To strengthen her strategic contribution...", "Her decision-making could be strengthened by..."). Each piece of advice is a concrete action ("...clarify any cost constraints and define more detailed budget plans.").
+* **Analysis:** Also a perfect two-paragraph structure.
+* **Paragraph 1 Logic:** Opens by naming her key strengths and then provides evidence for each.
+* **Paragraph 2 Logic:** Uses specific lead-in phrases for each development point. The paragraph runs all the way to the end of the summary, with the last point serving as the conclusion.
 
 ## ---------------------------------------------
 ## FINAL INSTRUCTIONS
 ## ---------------------------------------------
 
-Now, process the provided competency data for {person_name}. Determine the profile type. For mixed profiles, create a two-paragraph summary following all the new rules. For high-scorer profiles, create a single detailed paragraph. The total word count should be **between 250 and 280 words** to ensure comprehensive detail. Be descriptive, specific, and write in the sophisticated, nuanced style of the examples provided.
+Now, process the provided competency data for {person_name}. For mixed profiles, create a **strict two-paragraph summary** following all the new rules. For high-scorer profiles (no low scores), create a single detailed paragraph. The total word count should be **between 250 and 280 words**. Be descriptive, specific, and write in the sophisticated, nuanced style of the examples provided.
 """
     return prompt_text
 
@@ -126,11 +117,11 @@ def generate_summary_azure(prompt, api_key, endpoint, deployment_name):
         return None
 
 # --- Streamlit App Main UI ---
-st.set_page_config(page_title="DGE Executive Summary Generator v5.1", layout="wide")
+st.set_page_config(page_title="DGE Executive Summary Generator v5.3", layout="wide")
 
-st.title("📄 DGE Executive Summary Generator (V5.1)")
+st.title("📄 DGE Executive Summary Generator (V5.3)")
 st.markdown("""
-This application generates professional executive summaries based on leadership competency scores. **Version 5.1 incorporates advanced, human-expert examples for a more nuanced, two-paragraph output.**
+This application generates professional executive summaries based on leadership competency scores. **Version 5.3 strictly enforces the two-paragraph structure.**
 1.  **Set up your secrets**. Enter your Azure OpenAI credentials in the Streamlit Cloud app settings.
 2.  **Download the Sample Template**. The format requires a `gender` column (enter 'M' for Male, 'F' for Female).
 3.  **Upload your completed Excel file**.
@@ -157,9 +148,9 @@ sample_df = pd.DataFrame(sample_data)
 sample_excel_data = to_excel(sample_df)
 
 st.download_button(
-    label="📥 Download Sample Template File (V5.1)",
+    label="📥 Download Sample Template File (V5.3)",
     data=sample_excel_data,
-    file_name="dge_summary_template_v5.1.xlsx",
+    file_name="dge_summary_template_v5.3.xlsx",
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 )
 
@@ -231,7 +222,7 @@ if uploaded_file is not None:
 
             if generated_summaries:
                 st.balloons()
-                st.subheader("Generated Summaries (V5.1)")
+                st.subheader("Generated Summaries (V5.3)")
                 
                 output_df = df.copy()
                 output_df['Executive Summary'] = generated_summaries
@@ -240,9 +231,9 @@ if uploaded_file is not None:
                 
                 results_excel_data = to_excel(output_df)
                 st.download_button(
-                    label="📥 Download V5.1 Results as Excel",
+                    label="📥 Download V5.3 Results as Excel",
                     data=results_excel_data,
-                    file_name="Generated_Executive_Summaries_V5.1.xlsx",
+                    file_name="Generated_Executive_Summaries_V5.3.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 )
 
