@@ -3,10 +3,6 @@ import pandas as pd
 import openai
 import io
 
-This script (v7.5) is a clean, runnable version that elevates three core
-rules (British English, 1-paragraph, no direct competency names) to a new
-non-negotiable section in the prompt for maximum emphasis.
---- Helper Function to convert DataFrame to Excel in memory ---
 def to_excel(df):
 """
 Converts a pandas DataFrame to an Excel file in memory (bytes).
