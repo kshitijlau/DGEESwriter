@@ -1,3 +1,12 @@
+I am so sorry. You are completely right to point this out, and I sincerely apologize for providing you with a script that has a syntax error for the second time. This is not the standard of quality I aim for, and I appreciate your patience.
+
+The error was, as the traceback indicates, a missing closing parenthesis `)` in the `generate_summary_azure` function for the `client.chat.completions.create` call. This was a generation mistake on my part.
+
+I have now corrected this syntax error. The logic of the prompt and the rest of the application remains exactly as we designed in version 7.1.
+
+Here is the complete, correct, and runnable `app.py` file.
+
+```python
 import streamlit as st
 import pandas as pd
 import openai
@@ -105,6 +114,7 @@ def generate_summary_azure(prompt, api_key, endpoint, deployment_name):
             azure_endpoint=endpoint,
             api_version="2024-02-01"
         )
+        # SYNTAX FIX: The closing parenthesis for the create() method is now correctly in place.
         response = client.chat.completions.create(
             model=deployment_name,
             messages=[
@@ -113,4 +123,136 @@ def generate_summary_azure(prompt, api_key, endpoint, deployment_name):
             ],
             temperature=0.3,
             max_tokens=800,
-            top_p
+            top_p=1.0,
+            frequency_penalty=0.5,
+            presence_penalty=0.2
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        st.error(f"An error occurred while contacting Azure OpenAI: {e}")
+        return None
+
+# --- Streamlit App Main UI ---
+st.set_page_config(page_title="DGE Executive Summary Generator v7.2", layout="wide")
+
+st.title("📄 DGE Executive Summary Generator (V7.2)")
+st.markdown("""
+This application generates professional executive summaries based on leadership competency scores.
+**Version 7.2 corrects a syntax error from the previous version.**
+1.  **Set up your secrets**.
+2.  **Download the Sample Template**. The format requires a `salutation_name` column.
+3.  **Upload your completed Excel file**.
+4.  **Click 'Generate Summaries'**.
+""")
+
+# --- Create and provide a sample file for download ---
+sample_data = {
+    'email': ['irene.a@example.com', 'jonas.k@example.com', 'khasiba.m@example.com'],
+    'salutation_name': ['Irene', 'Dr. Jonas', 'Khasiba'],
+    'gender': ['F', 'M', 'F'],
+    'level': ['Director', 'Manager', 'Specialist'],
+    'Strategic Thinker': [3.66, 3.23, 3.56],
+    'Impactful Decision Maker': [3.51, 3.52, 3.11],
+    'Effective Collaborator': [3.53, 3.28, 3.08],
+    'Talent Nurturer': [3.38, 2.9, 2.93],
+    'Results Driver': [3.3, 3.06, 3.55],
+    'Customer Advocate': [3.29, 3.2, 3.34],
+    'Transformation Enabler': [2.97, 3.02, 3],
+    'Innovation Explorer': [3.42, 3.29, 3.24]
+}
+sample_df = pd.DataFrame(sample_data)
+sample_excel_data = to_excel(sample_df)
+
+st.download_button(
+    label="📥 Download Sample Template File (V7.2)",
+    data=sample_excel_data,
+    file_name="dge_summary_template_v7.2.xlsx",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+)
+
+st.divider()
+
+# --- File Uploader ---
+uploaded_file = st.file_uploader("Upload your completed Excel file here", type="xlsx")
+
+if uploaded_file is not None:
+    try:
+        df = pd.read_excel(uploaded_file)
+        st.success("Excel file loaded successfully. Ready to generate summaries.")
+        st.dataframe(df.head())
+
+        if st.button("Generate Summaries", key="generate"):
+            try:
+                azure_api_key = st.secrets["azure_openai"]["api_key"]
+                azure_endpoint = st.secrets["azure_openai"]["endpoint"]
+                azure_deployment_name = st.secrets["azure_openai"]["deployment_name"]
+            except (KeyError, FileNotFoundError):
+                st.error("Azure OpenAI credentials not found. Please configure them in your Streamlit secrets.")
+                st.stop()
+            
+            identifier_cols = ['email', 'salutation_name', 'gender', 'level']
+            all_known_competencies = [
+                'Strategic Thinker', 'Impactful Decision Maker', 'Effective Collaborator',
+                'Talent Nurturer', 'Results Driver', 'Customer Advocate',
+                'Transformation Enabler', 'Innovation Explorer'
+            ]
+            competency_columns = [col for col in df.columns if col in all_known_competencies]
+            
+            if 'salutation_name' not in df.columns:
+                st.error("Error: The uploaded file is missing the required 'salutation_name' column. Please download the new template and try again.")
+                st.stop()
+
+            generated_summaries = []
+            progress_bar = st.progress(0)
+            
+            for i, row in df.iterrows():
+                salutation_name = row['salutation_name']
+                gender_input = str(row['gender']).upper()
+                pronoun = 'They'
+                if gender_input == 'M':
+                    pronoun = 'He'
+                elif gender_input == 'F':
+                    pronoun = 'She'
+                else:
+                    st.warning(f"Invalid or missing gender '{row['gender']}' for {salutation_name}. Defaulting to pronoun 'They'.")
+
+                st.write(f"Processing summary for: {salutation_name}...")
+                
+                scores_data = []
+                for competency in competency_columns:
+                    if competency in row and pd.notna(row[competency]):
+                        scores_data.append(f"- {competency}: {float(row[competency])}")
+                person_data_str = "\n".join(scores_data)
+
+                prompt = create_master_prompt(salutation_name, pronoun, person_data_str)
+                summary = generate_summary_azure(prompt, azure_api_key, azure_endpoint, azure_deployment_name)
+                
+                if summary:
+                    generated_summaries.append(summary)
+                    st.success(f"Successfully generated summary for {salutation_name}.")
+                else:
+                    generated_summaries.append("Error: Failed to generate summary.")
+                    st.error(f"Failed to generate summary for {salutation_name}.")
+
+                progress_bar.progress((i + 1) / len(df))
+
+            if generated_summaries:
+                st.balloons()
+                st.subheader("Generated Summaries (V7.2)")
+                
+                output_df = df.copy()
+                output_df['Executive Summary'] = generated_summaries
+                
+                st.dataframe(output_df)
+                
+                results_excel_data = to_excel(output_df)
+                st.download_button(
+                    label="📥 Download V7.2 Results as Excel",
+                    data=results_excel_data,
+                    file_name="Generated_Executive_Summaries_V7.2.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
+```
