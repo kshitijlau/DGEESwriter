@@ -1,3 +1,10 @@
+Understood. A new critical rule will be implemented to strictly govern the format of the first sentence, ensuring it's one of four approved options and based on the single highest-scoring competency.
+
+I will replace the existing 'Opening Sentence Protocol' in the prompt with this new, mandatory directive. The prompt will instruct the AI to programmatically identify the top score and use it to construct the opening sentence with no deviation from the four formats. The rest of the "Integrated Feedback Loop" logic will remain intact to elaborate on all the competencies after the first sentence.
+
+Here is the complete and updated `app.py` file (`v7.1`) with this critical rule added.
+
+```python
 import streamlit as st
 import pandas as pd
 import openai
@@ -15,15 +22,15 @@ def to_excel(df):
     processed_data = output.getvalue()
     return processed_data
 
-# --- The RE-ENGINEERED Master Prompt Template (Version 6.2 - Concise Opening) ---
-def create_master_prompt(person_name, pronoun, person_data):
+# --- The RE-ENGINEERED Master Prompt Template (Version 7.1 - Strict Opening Sentence) ---
+def create_master_prompt(salutation_name, pronoun, person_data):
     """
     Dynamically creates the new, highly-constrained prompt for the Azure OpenAI API.
-    VERSION 6.2: Enforces a very short, direct opening sentence based on new feedback,
-    while maintaining overall content depth and the single-paragraph structure.
+    VERSION 7.1: Implements a new, critical rule that forces the opening sentence
+    into one of four exact formats, based on the single highest competency score.
 
     Args:
-        person_name (str): The first name of the person being evaluated.
+        salutation_name (str): The name to be used for the person, including titles (e.g., "Dr. Jonas", "Irene").
         pronoun (str): The correct pronoun for the person (e.g., 'He' or 'She').
         person_data (str): A string representation of the person's scores and competencies.
 
@@ -31,12 +38,12 @@ def create_master_prompt(person_name, pronoun, person_data):
         str: A fully constructed prompt ready to be sent to the AI model.
     """
     prompt_text = f"""
-You are an elite talent management consultant from a top-tier firm, known for writing insightful, nuanced, and actionable executive summaries in flawless British English. Your writing is strategic and indistinguishable from a human expert.
+You are an elite talent management consultant from a top-tier firm. Your writing is strategic, cohesive, and you follow instructions with precision. You will now follow a new, highly specific rule for the opening sentence.
 
 ## Core Objective
-Synthesize the provided competency data for {person_name} into a single, detailed, and unified narrative paragraph.
+Synthesize the provided competency data for {salutation_name} into a single, cohesive, and integrated narrative paragraph.
 
-## Input Data for {person_name}
+## Input Data for {salutation_name}
 <InputData>
 {person_data}
 </InputData>
@@ -45,49 +52,52 @@ Synthesize the provided competency data for {person_name} into a single, detaile
 ## CRITICAL DIRECTIVES FOR SUMMARY STRUCTURE & TONE
 ## ---------------------------------------------
 
-1.  **CRITICAL STRUCTURE: Single Paragraph ONLY.**
-    * The entire summary **MUST** be a single, unbroken paragraph. Do not use line breaks.
+1.  **CRITICAL OPENING SENTENCE PROTOCOL (MANDATORY):**
+    * The very first sentence **MUST** be constructed based on the competency with the **single highest numerical score** from the input data.
+    * This sentence **MUST** follow one of these four exact formats, with absolutely no deviation, additions, or elaboration.
+        1.  `{salutation_name} evidenced a strong ability to [highest scoring competency verb phrase].`
+        2.  `{salutation_name} evidenced a strong capacity to [highest scoring competency verb phrase].`
+        3.  `{salutation_name} demonstrated a strong ability to [highest scoring competency verb phrase].`
+        4.  `{salutation_name} demonstrated a strong capacity to [highest scoring competency verb phrase].`
+    * **Example:** If the input data shows 'Results Driver: 3.55' is the highest score, the opening sentence must be one of the four options, such as: "Khasiba demonstrated a strong ability to drive results."
+    * All other information and competency descriptions must begin from the **second sentence onward**.
 
-2.  **Opening Sentence Protocol (NEW - V6.2):**
-    * The first sentence **MUST** be extremely short and direct.
-    * It must identify the candidate's single highest-scoring competency and state it plainly.
-    * **DO NOT** elaborate, explain, or list other competencies in the first sentence. All elaboration comes in the sentences that follow.
-    * **Correct Example:** "Amel presented as a strong results driver."
-    * **Incorrect Example:** "Amel demonstrates notable strengths as a strategic thinker and results driver, consistently aligning her actions with broader organisational goals and maintaining a clear focus on delivering impactful outcomes."
+2.  **STRUCTURE AFTER OPENING: The Integrated Feedback Loop.**
+    * After the mandatory opening sentence, the rest of the paragraph **MUST** address each competency one by one in a logical flow.
+    * For each competency, you will first describe the **observed positive behavior** (the strength).
+    * Then, **IMMEDIATELY AFTER** describing the behavior, you will provide the **related development area** for that same competency, introduced with a phrase like "As a next step...", "To build on this...", or "To further develop...".
+    * This structure of `[Strength 1] -> [Development for 1] -> [Strength 2] -> [Development for 2]` is mandatory for the body of the paragraph.
 
-3.  **Narrative Flow (After Opening Sentence):**
-    * After the direct opening, the rest of the paragraph should flow seamlessly.
-    * **Strengths Section:** Elaborate on the primary strength and describe other strengths, providing rich behavioral detail.
-    * **Seamless Transition:** After describing the strengths, move smoothly into the development areas. Use transition phrases like "To further enhance..." or "As a next step, {pronoun} could focus on..." to connect the parts of the narrative *without* starting a new paragraph.
-    * **Development Section:** Detail the growth opportunities with specific, actionable suggestions.
-    * **Concluding Sentence:** The final sentence of the paragraph should be a brief, positive, and forward-looking statement about the candidate's potential.
+3.  **Name and Pronoun Usage:**
+    * Use the candidate's full salutation name, **{salutation_name}**, only in the first sentence. Thereafter, use the pronoun **{pronoun}**.
 
-4.  **General Style Rules:**
-    * Use clear, simple sentences. Aggressively avoid long sentences connected by many commas or conjunctions.
-    * Describe behaviors with nuance; do not just label competencies.
-    * ABSOLUTELY NO mention of scores, levels, or the assessment itself.
-    * Use the candidate's first name once at the beginning, then the correct pronoun ({pronoun}) thereafter.
+4.  **Linguistic Variety:**
+    * You MUST vary your descriptive language. Avoid reusing the same phrases for the same competency across different summaries.
+
+5.  **General Style Rules:**
+    * The entire summary must be a **single, unified paragraph**.
+    * Use clear, simple sentences.
+    * Provide **highly specific and actionable** development advice.
+    * ABSOLUTELY NO mention of scores or levels.
 
 ## ---------------------------------------------
-## ANALYSIS OF A GOLD-STANDARD EXAMPLE (INTERNALIZE THIS LOGIC)
+## ANALYSIS OF A GOLD-STANDARD EXAMPLE (INTERNALIZE THE NEW LOGIC)
 ## ---------------------------------------------
 
-**This example demonstrates the required SINGLE-PARAGRAPH structure for a mixed profile with the NEW concise opening.**
+**This example demonstrates the required structure: A strict opening sentence, followed by the Integrated Feedback Loop, all within a SINGLE PARAGRAPH.**
 
-* **Correct Output Example:** "Mahra presented as a strong strategic thinker. She demonstrated growing capability in driving innovation and making informed decisions, which was evident in her approach to aligning initiatives with organisational goals and applying benchmarks. She also fostered learning by mentoring peers and sharing her expertise. To strengthen her strategic contribution, Mahra is encouraged to clarify any cost constraints and define more detailed budget plans. Her decision-making could be strengthened by improving risk forecasting and systematically evaluating long-term options, and she could drive results more effectively by setting clearer goals and monitoring progress more consistently. By embedding structured coaching and feedback to support long-term talent growth, Mahra has the potential to significantly elevate her leadership impact."
+* **Correct Output Example:** "Khasiba demonstrated a strong ability to drive results. She consistently evidenced the ability to analyse complex scenarios, align initiatives with organisational objectives, and anticipate broader implications, showcasing a thoughtful and forward-looking approach. Her decision-making was impactful, marked by a balance of pragmatism and insight. To build on this, she could focus on refining her ability to evaluate complex, high-stakes scenarios where clarity is limited. Khasiba showcased the ability to foster productive relationships across teams. As a next step, she could focus on enhancing her influence in group settings. Her customer-centric mindset was evident in her advocacy for solutions that prioritised client needs. To further develop this area, she could focus on identifying emerging customer expectations and embedding these insights into design processes."
 
-* **Analysis of the Logic:**
-    * **Concise Opening:** The summary starts with a very short, direct sentence: "Mahra presented as a strong strategic thinker."
-    * **Single Paragraph:** The entire text is one unified paragraph.
-    * **Elaboration:** The details about her strengths immediately follow the opening sentence.
-    * **Seamless Transition:** It moves from strengths directly into development needs ("To strengthen her strategic contribution..."). The transition is smooth and occurs mid-paragraph.
-    * **Integrated Closing:** The final sentence ("By embedding structured coaching...") is a forward-looking statement and is the natural conclusion of the single paragraph.
+* **Analysis of the Integrated Logic:**
+    * **Strict Opening:** The summary begins with a sentence that follows the mandatory format, based on her highest score ('Results Driver').
+    * **Cohesion:** After the opening, the summary flows logically through the other competencies.
+    * **Integrated Feedback:** The development point for a competency comes *immediately* after its description. For example, `...foster productive relationships across teams.` (Strength) is immediately followed by `As a next step, she could focus on enhancing her influence...` (Related Development).
 
 ## ---------------------------------------------
 ## FINAL INSTRUCTIONS
 ## ---------------------------------------------
 
-Now, process the provided competency data for {person_name}. Create a **strict single-paragraph summary** following all the rules above. The opening sentence must be extremely concise. The total word count should be **between 250 and 280 words** to ensure comprehensive detail is not lost.
+Now, process the data for {salutation_name}. Create a **strict single-paragraph summary**. The first sentence MUST follow the mandatory protocol based on the single highest score. The rest of the paragraph must follow the **Integrated Feedback Loop** structure. The total word count should remain between 250-280 words.
 """
     return prompt_text
 
@@ -105,14 +115,14 @@ def generate_summary_azure(prompt, api_key, endpoint, deployment_name):
         response = client.chat.completions.create(
             model=deployment_name,
             messages=[
-                {"role": "system", "content": "You are an elite talent management consultant from a top-tier firm, known for writing insightful, nuanced, and actionable executive summaries in flawless British English."},
+                {"role": "system", "content": "You are an elite talent management consultant. Your writing is strategic and cohesive. You follow all instructions with precision, especially the format of the opening sentence."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.25,
+            temperature=0.3,
             max_tokens=800,
             top_p=1.0,
-            frequency_penalty=0.4,
-            presence_penalty=0.0
+            frequency_penalty=0.5,
+            presence_penalty=0.2
         )
         return response.choices[0].message.content.strip()
     except Exception as e:
@@ -120,40 +130,40 @@ def generate_summary_azure(prompt, api_key, endpoint, deployment_name):
         return None
 
 # --- Streamlit App Main UI ---
-st.set_page_config(page_title="DGE Executive Summary Generator v6.2", layout="wide")
+st.set_page_config(page_title="DGE Executive Summary Generator v7.1", layout="wide")
 
-st.title("📄 DGE Executive Summary Generator (V6.2)")
+st.title("📄 DGE Executive Summary Generator (V7.1)")
 st.markdown("""
-This application generates professional executive summaries based on leadership competency scores. **Version 6.2 uses a strict one-paragraph structure and a concise opening sentence.**
-1.  **Set up your secrets**. Enter your Azure OpenAI credentials in the Streamlit Cloud app settings.
-2.  **Download the Sample Template**. The format requires a `gender` column (enter 'M' for Male, 'F' for Female).
+This application generates professional executive summaries based on leadership competency scores.
+**Version 7.1 uses a mandatory, strict format for the opening sentence.**
+1.  **Set up your secrets**.
+2.  **Download the Sample Template**. The format requires a `salutation_name` column.
 3.  **Upload your completed Excel file**.
-4.  **Click 'Generate Summaries'** to process the file.
+4.  **Click 'Generate Summaries'**.
 """)
 
 # --- Create and provide a sample file for download ---
 sample_data = {
-    'email': ['jane.doe@example.com', 'john.roe@example.com'],
-    'first_name': ['Jane', 'John'],
-    'last_name': ['Doe', 'Roe'],
-    'gender': ['F', 'M'],
-    'level': ['Director', 'Manager'],
-    'Strategic Thinker': [4, 2],
-    'Impactful Decision Maker': [5, 3],
-    'Effective Collaborator': [2, 5],
-    'Talent Nurturer': [4, 2],
-    'Results Driver': [3, 4],
-    'Customer Advocate': [2, 4],
-    'Transformation Enabler': [3, 1],
-    'Innovation Catalyst': [1, 3]
+    'email': ['irene.a@example.com', 'jonas.k@example.com', 'khasiba.m@example.com'],
+    'salutation_name': ['Irene', 'Dr. Jonas', 'Khasiba'],
+    'gender': ['F', 'M', 'F'],
+    'level': ['Director', 'Manager', 'Specialist'],
+    'Strategic Thinker': [3.66, 3.23, 3.56],
+    'Impactful Decision Maker': [3.51, 3.52, 3.11],
+    'Effective Collaborator': [3.53, 3.28, 3.08],
+    'Talent Nurturer': [3.38, 2.9, 2.93],
+    'Results Driver': [3.3, 3.06, 3.55],
+    'Customer Advocate': [3.29, 3.2, 3.34],
+    'Transformation Enabler': [2.97, 3.02, 3],
+    'Innovation Explorer': [3.42, 3.29, 3.24]
 }
 sample_df = pd.DataFrame(sample_data)
 sample_excel_data = to_excel(sample_df)
 
 st.download_button(
-    label="📥 Download Sample Template File (V6.2)",
+    label="📥 Download Sample Template File (V7.1)",
     data=sample_excel_data,
-    file_name="dge_summary_template_v6.2.xlsx",
+    file_name="dge_summary_template_v7.1.xlsx",
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 )
 
@@ -177,23 +187,23 @@ if uploaded_file is not None:
                 st.error("Azure OpenAI credentials not found. Please configure them in your Streamlit secrets.")
                 st.stop()
             
-            identifier_cols = ['email', 'first_name', 'last_name', 'level', 'gender']
+            identifier_cols = ['email', 'salutation_name', 'gender', 'level']
             all_known_competencies = [
                 'Strategic Thinker', 'Impactful Decision Maker', 'Effective Collaborator',
                 'Talent Nurturer', 'Results Driver', 'Customer Advocate',
-                'Transformation Enabler', 'Innovation Catalyst'
+                'Transformation Enabler', 'Innovation Explorer'
             ]
             competency_columns = [col for col in df.columns if col in all_known_competencies]
             
-            if 'gender' not in df.columns:
-                st.error("Error: The uploaded file is missing the required 'gender' column. Please download the new template and try again.")
+            if 'salutation_name' not in df.columns:
+                st.error("Error: The uploaded file is missing the required 'salutation_name' column. Please download the new template and try again.")
                 st.stop()
 
             generated_summaries = []
             progress_bar = st.progress(0)
             
             for i, row in df.iterrows():
-                first_name = row['first_name']
+                salutation_name = row['salutation_name']
                 gender_input = str(row['gender']).upper()
                 pronoun = 'They'
                 if gender_input == 'M':
@@ -201,31 +211,31 @@ if uploaded_file is not None:
                 elif gender_input == 'F':
                     pronoun = 'She'
                 else:
-                    st.warning(f"Invalid or missing gender '{row['gender']}' for {first_name}. Defaulting to pronoun 'They'.")
+                    st.warning(f"Invalid or missing gender '{row['gender']}' for {salutation_name}. Defaulting to pronoun 'They'.")
 
-                st.write(f"Processing summary for: {first_name}...")
+                st.write(f"Processing summary for: {salutation_name}...")
                 
                 scores_data = []
                 for competency in competency_columns:
                     if competency in row and pd.notna(row[competency]):
-                        scores_data.append(f"- {competency}: {int(row[competency])}")
+                        scores_data.append(f"- {competency}: {float(row[competency])}")
                 person_data_str = "\n".join(scores_data)
 
-                prompt = create_master_prompt(first_name, pronoun, person_data_str)
+                prompt = create_master_prompt(salutation_name, pronoun, person_data_str)
                 summary = generate_summary_azure(prompt, azure_api_key, azure_endpoint, azure_deployment_name)
                 
                 if summary:
                     generated_summaries.append(summary)
-                    st.success(f"Successfully generated summary for {first_name}.")
+                    st.success(f"Successfully generated summary for {salutation_name}.")
                 else:
                     generated_summaries.append("Error: Failed to generate summary.")
-                    st.error(f"Failed to generate summary for {first_name}.")
+                    st.error(f"Failed to generate summary for {salutation_name}.")
 
                 progress_bar.progress((i + 1) / len(df))
 
             if generated_summaries:
                 st.balloons()
-                st.subheader("Generated Summaries (V6.2)")
+                st.subheader("Generated Summaries (V7.1)")
                 
                 output_df = df.copy()
                 output_df['Executive Summary'] = generated_summaries
@@ -234,11 +244,12 @@ if uploaded_file is not None:
                 
                 results_excel_data = to_excel(output_df)
                 st.download_button(
-                    label="📥 Download V6.2 Results as Excel",
+                    label="📥 Download V7.1 Results as Excel",
                     data=results_excel_data,
-                    file_name="Generated_Executive_Summaries_V6.2.xlsx",
+                    file_name="Generated_Executive_Summaries_V7.1.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 )
 
     except Exception as e:
         st.error(f"An error occurred: {e}")
+```
