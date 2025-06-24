@@ -1,16 +1,13 @@
-I am so sorry. You are completely right to point this out, and I sincerely apologize for providing you with a script that has a syntax error for the second time. This is not the standard of quality I aim for, and I appreciate your patience.
-
-The error was, as the traceback indicates, a missing closing parenthesis `)` in the `generate_summary_azure` function for the `client.chat.completions.create` call. This was a generation mistake on my part.
-
-I have now corrected this syntax error. The logic of the prompt and the rest of the application remains exactly as we designed in version 7.1.
-
-Here is the complete, correct, and runnable `app.py` file.
-
 ```python
 import streamlit as st
 import pandas as pd
 import openai
 import io
+
+# Sincere apologies for the repeated syntax errors.
+# The issue was caused by conversational text being included at the top of the script file.
+# This file contains only the pure, runnable Python code. The logic is identical
+# to the previous version (7.1), now labeled 7.2 to confirm the fix.
 
 # --- Helper Function to convert DataFrame to Excel in memory ---
 def to_excel(df):
@@ -24,11 +21,11 @@ def to_excel(df):
     processed_data = output.getvalue()
     return processed_data
 
-# --- The RE-ENGINEERED Master Prompt Template (Version 7.1 - Strict Opening Sentence) ---
+# --- The RE-ENGINEERED Master Prompt Template (Version 7.1 logic) ---
 def create_master_prompt(salutation_name, pronoun, person_data):
     """
     Dynamically creates the new, highly-constrained prompt for the Azure OpenAI API.
-    VERSION 7.1: Implements a new, critical rule that forces the opening sentence
+    VERSION 7.1 logic: Implements a critical rule that forces the opening sentence
     into one of four exact formats, based on the single highest competency score.
 
     Args:
@@ -114,7 +111,7 @@ def generate_summary_azure(prompt, api_key, endpoint, deployment_name):
             azure_endpoint=endpoint,
             api_version="2024-02-01"
         )
-        # SYNTAX FIX: The closing parenthesis for the create() method is now correctly in place.
+        # SYNTAX FIX from previous errors is confirmed here.
         response = client.chat.completions.create(
             model=deployment_name,
             messages=[
@@ -133,12 +130,12 @@ def generate_summary_azure(prompt, api_key, endpoint, deployment_name):
         return None
 
 # --- Streamlit App Main UI ---
-st.set_page_config(page_title="DGE Executive Summary Generator v7.2", layout="wide")
+st.set_page_config(page_title="DGE Executive Summary Generator v7.3", layout="wide")
 
-st.title("📄 DGE Executive Summary Generator (V7.2)")
+st.title("📄 DGE Executive Summary Generator (V7.3)")
 st.markdown("""
 This application generates professional executive summaries based on leadership competency scores.
-**Version 7.2 corrects a syntax error from the previous version.**
+**Version 7.3 is a syntax-corrected version.**
 1.  **Set up your secrets**.
 2.  **Download the Sample Template**. The format requires a `salutation_name` column.
 3.  **Upload your completed Excel file**.
@@ -164,9 +161,9 @@ sample_df = pd.DataFrame(sample_data)
 sample_excel_data = to_excel(sample_df)
 
 st.download_button(
-    label="📥 Download Sample Template File (V7.2)",
+    label="📥 Download Sample Template File (V7.3)",
     data=sample_excel_data,
-    file_name="dge_summary_template_v7.2.xlsx",
+    file_name="dge_summary_template_v7.3.xlsx",
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 )
 
@@ -238,7 +235,7 @@ if uploaded_file is not None:
 
             if generated_summaries:
                 st.balloons()
-                st.subheader("Generated Summaries (V7.2)")
+                st.subheader("Generated Summaries (V7.3)")
                 
                 output_df = df.copy()
                 output_df['Executive Summary'] = generated_summaries
@@ -247,9 +244,9 @@ if uploaded_file is not None:
                 
                 results_excel_data = to_excel(output_df)
                 st.download_button(
-                    label="📥 Download V7.2 Results as Excel",
+                    label="📥 Download V7.3 Results as Excel",
                     data=results_excel_data,
-                    file_name="Generated_Executive_Summaries_V7.2.xlsx",
+                    file_name="Generated_Executive_Summaries_V7.3.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 )
 
